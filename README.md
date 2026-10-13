@@ -19,6 +19,8 @@ Three bars side by side are easy to mix up, so each one has its own shape: **blo
 
 Bars are green below 50%, yellow from 50% and red from 80%.
 
+All of it can be changed: hide or reorder any part, show percentages without bars, add the session time, lines changed, cost or reset times, and more. See [Customize](#customize).
+
 ## Install
 
 In Claude Code, run:
@@ -70,6 +72,52 @@ Then add this to `~/.claude/settings.json`:
 
 </details>
 
+## Customize
+
+Tell Claude what you want, in your own words:
+
+```
+/statusline:configure percent only, hide the git branch
+/statusline:configure turn on session cost and reset times
+/statusline:configure reset to defaults
+```
+
+Or edit `~/.claude/statusline-plugin.json` yourself. Every key is optional, and changes show up after your next message. For example, this shows percentages only, hides the branch and adds the session cost:
+
+```json
+{
+  "parts": ["folder", "model", "context", "five_hour", "weekly", "cost"],
+  "bar_style": "percent"
+}
+```
+
+```
+my-app · Opus 5.5 high · ctx 42% · 5h 63% · week 85% · $1.50
+```
+
+| Option | Values | Default | What it does |
+| --- | --- | --- | --- |
+| `parts` | list of parts, see below | `["folder", "git", "model", "context", "five_hour", "weekly"]` | Which parts show, left to right. Leave one out to hide it |
+| `bar_style` | `"both"`, `"percent"`, `"bar"` | `"both"` | Bar and percent, percent only, or bar only |
+| `bar_width` | 1 to 40 | `10` | Number of cells in each bar |
+| `effort` | `true`, `false` | `true` | Effort level after the model name |
+| `labels` | `true`, `false` | `true` | The `ctx`, `5h` and `week` labels |
+| `reset_time` | `"off"`, `"on"`, `"near-limit"` | `"off"` | Time until the 5-hour and weekly limits reset, like `↻2h15m`. `near-limit` shows it only once that bar turns red |
+| `colors` | `true`, `false` | `true` | Plain text when `false` |
+| `warn_at` | 0 to 101 | `50` | Percent where a bar turns yellow |
+| `danger_at` | 0 to 101 | `80` | Percent where a bar turns red |
+| `shapes` | `{"weekly": ["#", "-"]}` | blocks, squares, dots | The filled and empty characters for each bar: `context`, `five_hour` or `weekly` |
+
+The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and `weekly`, plus three that are off by default: `duration` (session time, like `1h13m`), `lines` (lines added and removed, like `+120/-30`) and `cost` (session cost, like `$1.50`).
+
+How `bar_style` changes the meters:
+
+```
+"both"      ctx ████░░░░░░ 42% · 5h ■■■■■■□□□□ 63% · week ●●●●●●●●○○ 85%
+"percent"   ctx 42% · 5h 63% · week 85%
+"bar"       ctx ████░░░░░░ · 5h ■■■■■■□□□□ · week ●●●●●●●●○○
+```
+
 ## Requirements
 
 - Claude Code
@@ -90,7 +138,7 @@ Then run `/statusline:setup` again so it copies the new version.
 
 1. Remove the `statusLine` entry from `~/.claude/settings.json`, or put your old one back.
 2. Run `claude plugin uninstall statusline@statusline`.
-3. Delete `~/.claude/statusline-plugin.sh`.
+3. Delete `~/.claude/statusline-plugin.sh`, and `~/.claude/statusline-plugin.json` if you made one.
 
 ## Privacy
 

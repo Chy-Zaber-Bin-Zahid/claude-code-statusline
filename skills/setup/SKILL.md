@@ -53,7 +53,7 @@ echo '{"model":{"display_name":"Opus"},"effort":{"level":"high"},"context_window
   | bash "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugin.sh"
 ```
 
-It should print one line with the model name and three bars. If it prints an error instead, show the error to the user.
+It should print one line with the model name and the usage meters (three bars, unless the user's `statusline-plugin.json` changes that). If it prints an error instead, show the error to the user.
 
 ## 5. Tell the user
 
@@ -61,3 +61,4 @@ It should print one line with the model name and three bars. If it prints an err
 - The 5-hour and weekly bars appear only on a Claude subscription (Pro, Max, Team or Enterprise), once the session has had its first reply.
 - If a project's own `.claude/settings.json` sets a `statusLine`, that one wins inside that project.
 - After updating the plugin, run `/statusline:setup` again to copy the new version.
+- To change what it shows (hide parts, percentages only, reset times and more), run `/statusline:configure`, for example `/statusline:configure percent only, hide git`.
