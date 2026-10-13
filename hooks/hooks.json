@@ -1,0 +1,17 @@
+{
+  "description": "Remind people to run /statuslines:setup until the status line is turned on",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-setup.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

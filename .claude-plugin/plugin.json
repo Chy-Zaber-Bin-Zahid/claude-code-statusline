@@ -1,6 +1,6 @@
 {
   "name": "statuslines",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A compact status line with context, 5-hour and weekly usage bars, each in its own shape. Choose which parts show and how they look.",
   "author": {
     "name": "Chowdhury Zaber Bin Zahid",

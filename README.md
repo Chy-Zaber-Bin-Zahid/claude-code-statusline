@@ -36,7 +36,7 @@ Choose where to install it when asked (User is the default). Then turn it on:
 /statuslines:setup
 ```
 
-The new status line appears after your next message. If Claude Code says the setup command doesn't exist yet, run `/reload-plugins` and try again.
+The new status line appears after your next message. If Claude Code says the setup command doesn't exist yet, run `/reload-plugins` and try again. Until setup is done, each new session starts with a reminder to run it.
 
 Mind the **s** at the end of `statuslines`. Without it you get a different plugin, `statusline`, from Claude Code's plugin directory, and plain `/statusline` is Claude Code's own built-in command.
 
