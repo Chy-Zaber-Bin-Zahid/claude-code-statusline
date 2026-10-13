@@ -148,7 +148,7 @@ The custom line above uses:
 
 - Claude Code
 - `bash`, `jq` and `git` (git is only used for the branch)
-- A Claude subscription (Pro, Max, Team or Enterprise) for the 5-hour and weekly bars. They appear once a session has had its first reply, and stay hidden when you use an API key.
+- A Claude Pro or Max plan for the 5-hour and weekly bars. They appear once a session has had its first reply. With an API key or another provider, such as Bedrock, Vertex or GLM, Claude Code gets no usage numbers, so those bars stay hidden and the rest of the line still works.
 
 Tested on macOS, including its built-in bash 3.2. It uses only standard tools, so it should work on Linux too. On Windows, use WSL.
 

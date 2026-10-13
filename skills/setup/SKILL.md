@@ -58,7 +58,7 @@ It should print one line with the model name and the usage meters (three bars, u
 ## 5. Tell the user
 
 - It is set up, and the new status line appears after their next message.
-- The 5-hour and weekly bars appear only on a Claude subscription (Pro, Max, Team or Enterprise), once the session has had its first reply.
+- The 5-hour and weekly bars appear only on a Claude Pro or Max plan, once the session has had its first reply. With an API key or another provider (Bedrock, Vertex, GLM and so on) they stay hidden.
 - If a project's own `.claude/settings.json` sets a `statusLine`, that one wins inside that project.
 - After updating the plugin, run `/statuslines:setup` again to copy the new version.
 - To change what it shows (hide parts, percentages only, reset times and more), run `/statuslines:configure`, for example `/statuslines:configure percent only, hide git`.
