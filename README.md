@@ -15,7 +15,7 @@ Three bars side by side are easy to mix up, so each one has its own shape: **blo
 | Model | `Opus 5.5 high` | The model and its effort level |
 | Context | `ctx ██░░░░░░░░ 24%` | How full the context window is |
 | 5-hour limit | `5h ■■■■■■□□□□ 64%` | How much of your 5-hour usage limit you've used |
-| Weekly limit | `week ●●●●○○○○○○ 41%` | How much of your weekly usage limit you've used |
+| Weekly limit | `week ●●●●●○○○○○ 58%` | How much of your weekly usage limit you've used |
 
 Bars are green below 50%, yellow from 50% and red from 80%.
 
