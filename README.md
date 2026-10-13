@@ -1,8 +1,8 @@
-# Statusline
+# Statuslines
 
 A compact status line for [Claude Code](https://github.com/anthropics/claude-code) that shows how full your context window is and how much of your 5-hour and weekly limits you've used, so you don't have to keep opening the usage page.
 
-![Statusline at light, busy and heavy usage](assets/preview.svg)
+![Statuslines at light, busy and heavy usage](assets/levels.svg)
 
 Three bars side by side are easy to mix up, so each one has its own shape: **blocks** for context, **squares** for the 5-hour limit and **dots** for the weekly limit.
 
@@ -23,32 +23,30 @@ All of it can be changed: hide or reorder any part, show percentages without bar
 
 ## Install
 
-In Claude Code, run:
+In Claude Code, run these one at a time:
 
 ```
-/plugin install statusline --marketplace Chy-Zaber-Bin-Zahid/claude-code-statusline
+/plugin marketplace add Chy-Zaber-Bin-Zahid/claude-code-statusline
+/plugin install statuslines@statuslines
 ```
 
-Answer `y` to add the marketplace, then choose where to install it (User is the default). Then turn it on:
+Choose where to install it when asked (User is the default). Then turn it on:
 
 ```
-/statusline:setup
+/statuslines:setup
 ```
 
 The new status line appears after your next message. If Claude Code says the setup command doesn't exist yet, run `/reload-plugins` and try again.
 
-Type the whole command, `/statusline:setup`. Plain `/statusline` is Claude Code's own built-in command, which asks Claude to write a status line for you.
+Mind the **s** at the end of `statuslines`. Without it you get a different plugin, `statusline`, from Claude Code's plugin directory, and plain `/statusline` is Claude Code's own built-in command.
 
-<details>
-<summary>On an older version of Claude Code</summary>
+On newer versions of Claude Code you can install it in one line instead:
 
 ```
-/plugin marketplace add Chy-Zaber-Bin-Zahid/claude-code-statusline
-/plugin install statusline@statusline
-/statusline:setup
+/plugin install statuslines --marketplace Chy-Zaber-Bin-Zahid/claude-code-statusline
 ```
 
-</details>
+If Claude Code doesn't recognize `/plugin`, update it first with `claude update`.
 
 <details>
 <summary>Without the plugin system</summary>
@@ -77,9 +75,9 @@ Then add this to `~/.claude/settings.json`:
 Tell Claude what you want, in your own words:
 
 ```
-/statusline:configure percent only, hide the git branch
-/statusline:configure turn on session cost and reset times
-/statusline:configure reset to defaults
+/statuslines:configure percent only, hide the git branch
+/statuslines:configure turn on session cost and reset times
+/statuslines:configure reset to defaults
 ```
 
 Or edit `~/.claude/statusline-plugin.json` yourself. Every key is optional, and changes show up after your next message. For example, this shows percentages only, hides the branch and adds the session cost:
@@ -157,15 +155,15 @@ Tested on macOS, including its built-in bash 3.2. It uses only standard tools, s
 ## Update
 
 ```bash
-claude plugin update statusline@statusline
+claude plugin update statuslines@statuslines
 ```
 
-Then run `/statusline:setup` again so it copies the new version.
+Then run `/statuslines:setup` again so it copies the new version.
 
 ## Uninstall
 
 1. Remove the `statusLine` entry from `~/.claude/settings.json`, or put your old one back.
-2. Run `claude plugin uninstall statusline@statusline`.
+2. Run `claude plugin uninstall statuslines@statuslines`.
 3. Delete `~/.claude/statusline-plugin.sh`, and `~/.claude/statusline-plugin.json` if you made one.
 
 ## Speed and privacy

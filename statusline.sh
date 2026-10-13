@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Statusline: a status line for Claude Code
+# Statuslines: a status line for Claude Code
 # folder · git branch · model + effort · context bar · 5-hour usage bar · weekly usage bar
 # https://github.com/Chy-Zaber-Bin-Zahid/claude-code-statusline
 #
@@ -11,7 +11,7 @@
 # lists them all.
 
 if ! command -v jq >/dev/null 2>&1; then
-    echo "statusline needs jq: https://jqlang.org/download/"
+    echo "statuslines needs jq: https://jqlang.org/download/"
     exit 0
 fi
 

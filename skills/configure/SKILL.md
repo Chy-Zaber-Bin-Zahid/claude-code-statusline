@@ -1,10 +1,10 @@
 ---
 name: configure
-description: Change what the Statusline plugin shows, such as hiding or reordering parts, showing percentages without bars, or changing bar width, shapes, colors and reset times. Use when the user runs /statusline:configure, or asks to change a status line drawn by this plugin's statusline-plugin.sh.
+description: Change what the Statuslines plugin shows, such as hiding or reordering parts, showing percentages without bars, or changing bar width, shapes, colors and reset times. Use when the user runs /statuslines:configure, or asks to change a status line drawn by this plugin's statusline-plugin.sh.
 argument-hint: "[what to change, like: percent only, hide git]"
 ---
 
-# Configure Statusline
+# Configure Statuslines
 
 The options live in `statusline-plugin.json` in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Every key is optional, and a missing key uses its default. The status line reads the file each time it refreshes, so changes show up after the user's next message, with no restart.
 
@@ -12,7 +12,7 @@ The user asked for: $ARGUMENTS
 
 ## 1. Check this plugin draws their status line
 
-Read `statusLine.command` in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`. If it doesn't mention `statusline-plugin.sh`, these options change nothing: tell the user, suggest `/statusline:setup`, and stop unless they still want to go on.
+Read `statusLine.command` in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`. If it doesn't mention `statusline-plugin.sh`, these options change nothing: tell the user, suggest `/statuslines:setup`, and stop unless they still want to go on.
 
 ## 2. Work out the change
 

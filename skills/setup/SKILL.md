@@ -1,10 +1,10 @@
 ---
 name: setup
-description: Turn on Statusline as the user's status line, or refresh it after a plugin update. Run when the user types /statusline:setup.
+description: Turn on Statuslines as the user's status line, or refresh it after a plugin update. Run when the user types /statuslines:setup.
 disable-model-invocation: true
 ---
 
-# Set up Statusline
+# Set up Statuslines
 
 Point the user's Claude Code status line at this plugin's script. Work through the steps in order, run the commands yourself, and tell the user in plain words what you changed.
 
@@ -12,7 +12,7 @@ Below, `CONFIG_DIR` means `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`.
 
 ## 1. Check for jq
 
-Run `command -v jq`. If it prints nothing, stop and tell the user to install jq, then run `/statusline:setup` again:
+Run `command -v jq`. If it prints nothing, stop and tell the user to install jq, then run `/statuslines:setup` again:
 
 - macOS: `brew install jq`
 - Debian or Ubuntu: `sudo apt install jq`
@@ -20,7 +20,7 @@ Run `command -v jq`. If it prints nothing, stop and tell the user to install jq,
 
 ## 2. Copy the script to a fixed place
 
-The script ships with this plugin as `statusline.sh`, two folders above this skill's base directory (`<base directory>/../../statusline.sh`). If it is not there, use the newest `CONFIG_DIR/plugins/cache/statusline/statusline/<version>/statusline.sh`.
+The script ships with this plugin as `statusline.sh`, two folders above this skill's base directory (`<base directory>/../../statusline.sh`). If it is not there, use the newest `CONFIG_DIR/plugins/cache/statuslines/statuslines/<version>/statusline.sh`.
 
 The plugin's folder changes with every version, so copy the script out instead of pointing at it. If `statusline-plugin.sh` already exists there and does not contain `github.com/Chy-Zaber-Bin-Zahid/`, it is someone else's file: ask the user before overwriting it.
 
@@ -60,5 +60,5 @@ It should print one line with the model name and the usage meters (three bars, u
 - It is set up, and the new status line appears after their next message.
 - The 5-hour and weekly bars appear only on a Claude subscription (Pro, Max, Team or Enterprise), once the session has had its first reply.
 - If a project's own `.claude/settings.json` sets a `statusLine`, that one wins inside that project.
-- After updating the plugin, run `/statusline:setup` again to copy the new version.
-- To change what it shows (hide parts, percentages only, reset times and more), run `/statusline:configure`, for example `/statusline:configure percent only, hide git`.
+- After updating the plugin, run `/statuslines:setup` again to copy the new version.
+- To change what it shows (hide parts, percentages only, reset times and more), run `/statuslines:configure`, for example `/statuslines:configure percent only, hide git`.
