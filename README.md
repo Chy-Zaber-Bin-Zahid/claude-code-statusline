@@ -24,7 +24,7 @@ Bars are green below 50%, yellow from 50% and red from 80%.
 In Claude Code, run:
 
 ```
-/plugin install statusline --marketplace Chy-Zaber-Bin-Zahid/statusline
+/plugin install statusline --marketplace Chy-Zaber-Bin-Zahid/claude-code-statusline
 ```
 
 Answer `y` to add the marketplace, then choose where to install it (User is the default). Then turn it on:
@@ -41,7 +41,7 @@ Type the whole command, `/statusline:setup`. Plain `/statusline` is Claude Code'
 <summary>On an older version of Claude Code</summary>
 
 ```
-/plugin marketplace add Chy-Zaber-Bin-Zahid/statusline
+/plugin marketplace add Chy-Zaber-Bin-Zahid/claude-code-statusline
 /plugin install statusline@statusline
 /statusline:setup
 ```
@@ -54,7 +54,7 @@ Type the whole command, `/statusline:setup`. Plain `/statusline` is Claude Code'
 Download the script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Chy-Zaber-Bin-Zahid/statusline/main/statusline.sh -o ~/.claude/statusline-plugin.sh
+curl -fsSL https://raw.githubusercontent.com/Chy-Zaber-Bin-Zahid/claude-code-statusline/main/statusline.sh -o ~/.claude/statusline-plugin.sh
 ```
 
 Then add this to `~/.claude/settings.json`:

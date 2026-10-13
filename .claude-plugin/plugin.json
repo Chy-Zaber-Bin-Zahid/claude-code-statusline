@@ -1,13 +1,19 @@
 {
   "name": "statusline",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A compact status line with context, 5-hour and weekly usage bars, each drawn in its own shape so you can tell them apart at a glance.",
   "author": {
     "name": "Chowdhury Zaber Bin Zahid",
     "url": "https://github.com/Chy-Zaber-Bin-Zahid"
   },
-  "homepage": "https://github.com/Chy-Zaber-Bin-Zahid/statusline",
-  "repository": "https://github.com/Chy-Zaber-Bin-Zahid/statusline",
+  "homepage": "https://github.com/Chy-Zaber-Bin-Zahid/claude-code-statusline",
+  "repository": "https://github.com/Chy-Zaber-Bin-Zahid/claude-code-statusline",
   "license": "MIT",
-  "keywords": ["statusline", "status-line", "usage", "rate-limits", "context-window"]
+  "keywords": [
+    "statusline",
+    "status-line",
+    "usage",
+    "rate-limits",
+    "context-window"
+  ]
 }

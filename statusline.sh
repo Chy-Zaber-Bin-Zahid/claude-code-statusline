@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Statusline: a status line for Claude Code
 # folder · git branch · model + effort · context bar · 5-hour usage bar · weekly usage bar
-# https://github.com/Chy-Zaber-Bin-Zahid/statusline
+# https://github.com/Chy-Zaber-Bin-Zahid/claude-code-statusline
 #
 # Claude Code pipes the session's data to this script as JSON on stdin and
 # shows whatever it prints. The script makes no network calls.

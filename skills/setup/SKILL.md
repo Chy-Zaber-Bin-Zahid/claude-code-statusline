@@ -22,7 +22,7 @@ Run `command -v jq`. If it prints nothing, stop and tell the user to install jq,
 
 The script ships with this plugin as `statusline.sh`, two folders above this skill's base directory (`<base directory>/../../statusline.sh`). If it is not there, use the newest `CONFIG_DIR/plugins/cache/statusline/statusline/<version>/statusline.sh`.
 
-The plugin's folder changes with every version, so copy the script out instead of pointing at it. If `statusline-plugin.sh` already exists there and does not contain `github.com/Chy-Zaber-Bin-Zahid/statusline`, it is someone else's file: ask the user before overwriting it.
+The plugin's folder changes with every version, so copy the script out instead of pointing at it. If `statusline-plugin.sh` already exists there and does not contain `github.com/Chy-Zaber-Bin-Zahid/`, it is someone else's file: ask the user before overwriting it.
 
 ```bash
 cp "<path to statusline.sh>" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugin.sh"
