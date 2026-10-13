@@ -1,0 +1,22 @@
+{
+  "name": "statusline",
+  "description": "A Claude Code status line with context, 5-hour and weekly usage at a glance.",
+  "owner": {
+    "name": "Chowdhury Zaber Bin Zahid",
+    "url": "https://github.com/Chy-Zaber-Bin-Zahid"
+  },
+  "plugins": [
+    {
+      "name": "statusline",
+      "description": "A compact status line with context, 5-hour and weekly usage bars, each drawn in its own shape.",
+      "source": "./",
+      "version": "1.0.0",
+      "category": "productivity",
+      "tags": [
+        "statusline",
+        "usage",
+        "rate-limits"
+      ]
+    }
+  ]
+}
