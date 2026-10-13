@@ -57,7 +57,14 @@ Download the script:
 curl -fsSL https://raw.githubusercontent.com/Chy-Zaber-Bin-Zahid/claude-code-statusline/main/statusline.sh -o ~/.claude/statusline-plugin.sh
 ```
 
-Then add this to `~/.claude/settings.json`:
+Then point Claude Code at it. This keeps your other settings as they are:
+
+```bash
+[ -f ~/.claude/settings.json ] || echo '{}' > ~/.claude/settings.json
+jq '.statusLine = {"type": "command", "command": "bash ~/.claude/statusline-plugin.sh"}' ~/.claude/settings.json > ~/.claude/settings.tmp && mv ~/.claude/settings.tmp ~/.claude/settings.json
+```
+
+Or add this to `~/.claude/settings.json` by hand:
 
 ```json
 {
@@ -152,6 +159,27 @@ The custom line above uses:
 
 Tested on macOS, including its built-in bash 3.2. It uses only standard tools, so it should work on Linux too. On Windows, use WSL.
 
+## Troubleshooting
+
+**Nothing shows after installing.** Installing doesn't switch the status line by itself. Run `/statuslines:setup`, then send any message. If it still doesn't show, run this in a terminal to see what's missing:
+
+```bash
+echo "== system: $(uname -s)"; echo "== jq: $(jq --version 2>&1)"
+echo "== statusLine setting:"; grep -A3 '"statusLine"' ~/.claude/settings.json || echo "(none)"
+echo "== script:"; ls -la ~/.claude/statusline-plugin.sh
+echo "== test run:"; echo '{"model":{"display_name":"test"},"context_window":{"used_percentage":42}}' | bash ~/.claude/statusline-plugin.sh
+```
+
+**It says `statuslines needs jq`.** Install jq (`brew install jq` on macOS, `sudo apt install jq` on Debian or Ubuntu), and the status line appears on the next refresh.
+
+**The 5-hour and weekly bars are missing.** They need a Claude Pro or Max plan, and they appear only after the session's first reply. With an API key or another provider they stay hidden.
+
+**It says `statusline-plugin.json is not valid JSON`.** Your options file has a typo. Fix it, or run `/statuslines:configure reset to defaults`.
+
+**`/statuslines:setup` isn't found.** Run `/reload-plugins`, or start a new session.
+
+**You got a different plugin.** Check the name: `statuslines`, with an **s**.
+
 ## Update
 
 ```bash
@@ -171,6 +199,18 @@ Then run `/statuslines:setup` again so it copies the new version.
 The status line refreshes often, so the script remembers the git check for 5 seconds. With that, each refresh takes about 50 ms.
 
 The script runs on your computer and makes no network requests. It reads only the session data Claude Code passes to it and the git status of your current folder. The only thing it writes is that git answer, in one small file per session in your temp folder.
+
+## Changelog
+
+- **2.1.0:** Each new session reminds you to run `/statuslines:setup` until it's done.
+- **2.0.0:** Renamed to `statuslines`, because another plugin in Claude Code's directory is called `statusline`. The commands are now `/statuslines:setup` and `/statuslines:configure`.
+- **1.2.0:** Faster refreshes (the git check is remembered for 5 seconds). New `context_size` and `ascii` options, and new `agent` and `worktree` parts. Cost stays hidden while it's $0.00.
+- **1.1.0:** Options for parts, bar style, width, shapes, colors, thresholds and reset times, plus `/statuslines:configure`.
+- **1.0.0:** First release.
+
+## Feedback
+
+Found a bug or have an idea? [Open an issue](https://github.com/Chy-Zaber-Bin-Zahid/claude-code-statusline/issues). If Statuslines saves you a trip to the usage page, a ⭐ on GitHub helps other people find it.
 
 ## License
 
