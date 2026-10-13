@@ -33,16 +33,19 @@ chmod +x "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugin.sh"
 
 Open `CONFIG_DIR/settings.json` (if it does not exist, create it containing `{}`).
 
-If it already has a `statusLine` whose command is not the one below, show the user the current value and ask before replacing it, so they can switch back later. If it already matches, leave the file alone.
+If it already has a `statusLine` whose command doesn't run `statusline-plugin.sh`, show the user the current value and ask before replacing it, so they can switch back later. If it already matches the block below exactly, leave the file alone.
 
 Otherwise set the top-level `statusLine` key to exactly this, keeping every other setting as it is:
 
 ```json
 "statusLine": {
   "type": "command",
-  "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugin.sh\""
+  "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugin.sh\"",
+  "refreshInterval": 60
 }
 ```
+
+`refreshInterval` redraws the line every minute even while the session is idle, so reset countdowns stay current and the usage bars can turn grey when their numbers get old. A setup from an older version lacks it, so add it there too.
 
 Check the file is still valid JSON afterwards (`jq . <file>`).
 

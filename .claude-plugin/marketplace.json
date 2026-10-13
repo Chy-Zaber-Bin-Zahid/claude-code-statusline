@@ -10,7 +10,7 @@
       "name": "statuslines",
       "description": "A compact status line with context, 5-hour and weekly usage bars, each in its own shape. Choose which parts show and how they look.",
       "source": "./",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "category": "productivity",
       "tags": [
         "statusline",

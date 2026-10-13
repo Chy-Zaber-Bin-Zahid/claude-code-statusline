@@ -61,7 +61,7 @@ Then point Claude Code at it. This keeps your other settings as they are:
 
 ```bash
 [ -f ~/.claude/settings.json ] || echo '{}' > ~/.claude/settings.json
-jq '.statusLine = {"type": "command", "command": "bash ~/.claude/statusline-plugin.sh"}' ~/.claude/settings.json > ~/.claude/settings.tmp && mv ~/.claude/settings.tmp ~/.claude/settings.json
+jq '.statusLine = {"type": "command", "command": "bash ~/.claude/statusline-plugin.sh", "refreshInterval": 60}' ~/.claude/settings.json > ~/.claude/settings.tmp && mv ~/.claude/settings.tmp ~/.claude/settings.json
 ```
 
 Or add this to `~/.claude/settings.json` by hand:
@@ -70,7 +70,8 @@ Or add this to `~/.claude/settings.json` by hand:
 {
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/statusline-plugin.sh"
+    "command": "bash ~/.claude/statusline-plugin.sh",
+    "refreshInterval": 60
   }
 }
 ```
@@ -113,6 +114,7 @@ my-app · Opus 5.5 high · ctx 42% · 5h 63% · week 85% · $1.50
 | `danger_at` | 0 to 101 | `80` | Percent where a bar turns red |
 | `context_size` | `true`, `false` | `false` | The context window size after the context meter, like `42% of 1M` |
 | `ascii` | `true`, `false` | `false` | Plain ASCII characters only, for terminals or fonts that can't draw the shapes |
+| `stale_after` | minutes, 0 to turn off | `15` | Turn the 5-hour and weekly bars grey, with `updated 25m ago`, once their numbers are this old. See [Out-of-date numbers](#out-of-date-numbers) |
 | `shapes` | `{"weekly": ["#", "-"]}` | blocks, squares, dots | The filled and empty characters for each bar: `context`, `five_hour` or `weekly` |
 
 The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and `weekly`, plus five that are off by default:
@@ -122,6 +124,16 @@ The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and 
 - `cost`: session cost, like `$1.50`, once there is some
 - `agent`: the agent's name, while you run Claude Code as an agent
 - `worktree`: the worktree's name, while the session is in one
+
+### Out-of-date numbers
+
+Claude Code sends the 5-hour and weekly numbers with each reply in your session. If the session sits idle while you use Claude somewhere else, in another terminal, on claude.ai or in the app, its numbers stop moving. After `stale_after` minutes without a reply (15 by default), the two bars turn grey and the last one says how old they are:
+
+```
+ctx ████░░░░░░ 42% · 5h ■■■■■■□□□□ 63% · week ●●●●●●●●○○ 85% updated 25m ago
+```
+
+They get their colors back with your next reply. The context bar is always current, so it never goes grey.
 
 ### Examples
 
@@ -174,6 +186,8 @@ echo "== test run:"; echo '{"model":{"display_name":"test"},"context_window":{"u
 
 **The 5-hour and weekly bars are missing.** They need a Claude Pro or Max plan, and they appear only after the session's first reply. With an API key or another provider they stay hidden.
 
+**The 5-hour and weekly bars are grey.** Their numbers are old because the session hasn't had a reply for a while. They update with your next message. See [Out-of-date numbers](#out-of-date-numbers).
+
 **It says `statusline-plugin.json is not valid JSON`.** Your options file has a typo. Fix it, or run `/statuslines:configure reset to defaults`.
 
 **`/statuslines:setup` isn't found.** Run `/reload-plugins`, or start a new session.
@@ -196,12 +210,13 @@ Then run `/statuslines:setup` again so it copies the new version.
 
 ## Speed and privacy
 
-The status line refreshes often, so the script remembers the git check for 5 seconds. With that, each refresh takes about 50 ms.
+The status line refreshes often, so the script remembers the git check for 5 seconds. With that, each refresh takes about 50 ms. Setup also has Claude Code redraw the line once a minute, so reset countdowns and out-of-date warnings stay current while you're idle.
 
-The script runs on your computer and makes no network requests. It reads only the session data Claude Code passes to it and the git status of your current folder. The only thing it writes is that git answer, in one small file per session in your temp folder.
+The script runs on your computer and makes no network requests. It reads only the session data Claude Code passes to it and the git status of your current folder. It writes two small files per session in your temp folder: the remembered git answer, and when the session last heard from Claude.
 
 ## Changelog
 
+- **2.2.0:** The 5-hour and weekly bars turn grey with `updated 25m ago` when their numbers are out of date (new `stale_after` option). The line now redraws every minute, so run `/statuslines:setup` once more after updating.
 - **2.1.0:** Each new session reminds you to run `/statuslines:setup` until it's done.
 - **2.0.0:** Renamed to `statuslines`, because another plugin in Claude Code's directory is called `statusline`. The commands are now `/statuslines:setup` and `/statuslines:configure`.
 - **1.2.0:** Faster refreshes (the git check is remembered for 5 seconds). New `context_size` and `ascii` options, and new `agent` and `worktree` parts. Cost stays hidden while it's $0.00.

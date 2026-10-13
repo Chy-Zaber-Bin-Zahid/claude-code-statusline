@@ -10,18 +10,23 @@ dir=${CLAUDE_CONFIG_DIR:-$HOME/.claude}
 project=${CLAUDE_PROJECT_DIR:-$PWD}
 settings=("$dir/settings.json" "$project/.claude/settings.json" "$project/.claude/settings.local.json")
 
-ours="" other=""
+ours="" other="" refresh=""
 for f in "${settings[@]}"; do
     [ -f "$f" ] || continue
     if grep -q 'statusline-plugin\.sh' "$f"; then
         ours=1
+        grep -q '"refreshInterval"' "$f" && refresh=1
     elif grep -q '"statusLine"' "$f"; then
         other=1
     fi
 done
 
-if [ -n "$ours" ] && [ -f "$dir/statusline-plugin.sh" ]; then
+if [ -n "$ours" ] && [ -f "$dir/statusline-plugin.sh" ] && [ -n "$refresh" ]; then
     exit 0
+elif [ -n "$ours" ] && [ -f "$dir/statusline-plugin.sh" ]; then
+    # Set up before 2.2.0: the line only redraws on new replies, so it can't
+    # notice when the usage numbers get old.
+    msg="Run /statuslines:setup once more so Statuslines refreshes every minute and can flag out-of-date usage numbers."
 elif [ -n "$ours" ]; then
     msg="Statuslines can't find its script. Run /statuslines:setup to put it back."
 elif [ -n "$other" ]; then

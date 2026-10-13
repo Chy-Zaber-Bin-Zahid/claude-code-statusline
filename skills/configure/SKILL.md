@@ -31,6 +31,7 @@ If the request above is empty, read the current file (no file means all defaults
 | `danger_at` | 0 to 101 | `80` | Percent where a bar turns red |
 | `context_size` | `true`, `false` | `false` | The context window size after the context meter, like `42% of 1M` |
 | `ascii` | `true`, `false` | `false` | Plain ASCII only: ASCII bar shapes, `git:` before the branch, `\|` between parts, `reset` before reset times. Shapes set in `shapes` still win |
+| `stale_after` | minutes, `0` turns it off | `15` | Turn the 5-hour and weekly bars grey, with `updated 25m ago`, once the session has had no reply from Claude for this long, since their numbers may be out of date |
 | `shapes` | object, see below | blocks, squares, dots | The characters each bar is drawn with |
 
 Parts: `folder`, `git` (branch and uncommitted changes), `model`, `context`, `five_hour`, `weekly`, plus five that are off by default: `duration` (session time), `lines` (lines added and removed), `cost` (session cost in dollars, hidden while it is $0.00), `agent` (the agent's name, only while running as an agent) and `worktree` (the worktree's name, only while in one).

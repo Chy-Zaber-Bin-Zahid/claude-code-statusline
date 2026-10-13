@@ -58,6 +58,7 @@ def shape($d): if type == "array" and length == 2 and all(.[]; type == "string" 
   (.context_window.context_window_size | size),
   (.agent.name | text),
   (.worktree.name | text),
+  (.cost.total_api_duration_ms | int),
   (if ($o.parts | type) == "array"
      then [$o.parts[] | select(type == "string") | select(. as $p | any($known[]; . == $p))]
      else ["folder", "git", "model", "context", "five_hour", "weekly"] end | join(" ")),
@@ -71,6 +72,7 @@ def shape($d): if type == "array" and length == 2 and all(.[]; type == "string" 
   ($o.danger_at | num(80; 0; 101) | tostring),
   ($o.context_size | flag(false) | tostring),
   ($ascii | tostring),
+  ($o.stale_after | num(15; 0; 10080) | tostring),
   ($s.context | shape(if $ascii then ["#", "-"] else ["█", "░"] end) | .[]),
   ($s.five_hour | shape(if $ascii then ["=", "-"] else ["■", "□"] end) | .[]),
   ($s.weekly | shape(if $ascii then ["*", "."] else ["●", "○"] end) | .[])
@@ -93,11 +95,11 @@ fi
     IFS= read -r fh_reset;   IFS= read -r wk_reset;   IFS= read -r dur_ms
     IFS= read -r added;      IFS= read -r removed;    IFS= read -r cost
     IFS= read -r session_id; IFS= read -r ctx_size;   IFS= read -r agent
-    IFS= read -r worktree
+    IFS= read -r worktree;   IFS= read -r api_ms
     IFS= read -r parts;      IFS= read -r bar_style;  IFS= read -r bar_width
     IFS= read -r show_effort; IFS= read -r labels;    IFS= read -r reset_time
     IFS= read -r colors;     IFS= read -r warn_at;    IFS= read -r danger_at
-    IFS= read -r context_size; IFS= read -r ascii
+    IFS= read -r context_size; IFS= read -r ascii;    IFS= read -r stale_after
     IFS= read -r ctx_on;     IFS= read -r ctx_off
     IFS= read -r fh_on;      IFS= read -r fh_off
     IFS= read -r wk_on;      IFS= read -r wk_off
@@ -107,6 +109,7 @@ fi
 if [ -z "$fields" ]; then
     parts=model bar_style=both bar_width=10 show_effort=true labels=true
     reset_time=off colors=true warn_at=50 danger_at=80 context_size=false ascii=false
+    stale_after=0
 fi
 model=${model:-Claude}
 # The session id names the git cache file, so keep it to safe characters.
@@ -126,15 +129,38 @@ else
 fi
 [ "$reset_time" != off ] && now=$(date +%s)
 
-# Time left until a reset, like 4d11h, 2h15m or 40m. Prints nothing once past.
-until_reset() {
-    local left=$(( $1 - now )) d h m
-    [ "$left" -gt 0 ] || return 0
-    d=$(( left / 86400 )); h=$(( left % 86400 / 3600 )); m=$(( left % 3600 / 60 ))
+# A length of time in seconds, like 4d11h, 2h15m or 40m.
+span() {
+    local d=$(( $1 / 86400 )) h=$(( $1 % 86400 / 3600 )) m=$(( $1 % 3600 / 60 ))
     if   [ "$d" -gt 0 ]; then printf '%sd%sh' "$d" "$h"
     elif [ "$h" -gt 0 ]; then printf '%sh%sm' "$h" "$m"
     else                      printf '%sm' "$m"
     fi
+}
+
+# Time left until a reset. Prints nothing once past.
+until_reset() {
+    local left=$(( $1 - now ))
+    [ "$left" -gt 0 ] && span "$left"
+}
+
+# Seconds since this session last heard from Claude. Claude Code sends the
+# usage numbers with each reply, so they're only as fresh as the last reply:
+# usage in other sessions or on claude.ai doesn't show here until the next one.
+# Claude Code reports no reply time, but total_api_duration_ms grows with every
+# reply, so the time it last changed is kept per session.
+usage_age() {
+    local state="${TMPDIR:-/tmp}/statusline-plugin-usage-$session_id" seen="" stamp="" tmp
+    if [ -f "$state" ] && { IFS= read -r seen && IFS= read -r stamp; } < "$state"; then
+        case $stamp in ''|*[!0-9]*) seen="" ;; esac
+    fi
+    if [ "$seen" != "$api_ms" ]; then
+        stamp=$now
+        if tmp=$(mktemp "$state.XXXXXX" 2>/dev/null); then
+            printf '%s\n%s\n' "$api_ms" "$stamp" > "$tmp" && mv -f "$tmp" "$state"
+        fi
+    fi
+    printf '%s' $(( now - stamp ))
 }
 
 # Branch and count of uncommitted changes, as two lines; nothing outside a repo.
@@ -168,11 +194,13 @@ git_info() {
 }
 
 # A usage meter: label, bar and/or percent, an optional note, then the reset
-# time if it's wanted. Coloured green, yellow from warn_at, red from danger_at.
-# usage: meter <label> <whole percent> <fill glyph> <empty glyph> [reset epoch] [note]
+# time if it's wanted. Coloured green, yellow from warn_at, red from danger_at,
+# or in the colour given last (grey for numbers that may be out of date).
+# usage: meter <label> <whole percent> <fill glyph> <empty glyph> [reset epoch] [note] [colour]
 meter() {
     local u=$2 on=$3 off=$4 reset=$5 note=$6 C bar="" out="" filled i left
-    if   [ "$u" -ge "$danger_at" ]; then C=$RED
+    if   [ -n "$7" ];               then C=$7
+    elif [ "$u" -ge "$danger_at" ]; then C=$RED
     elif [ "$u" -ge "$warn_at" ];   then C=$YELLOW
     else                                 C=$GREEN
     fi
@@ -196,6 +224,18 @@ meter() {
     fi
     printf '%s' "$out"
 }
+
+# Usage numbers older than stale_after minutes are drawn grey, and the last
+# usage meter says how old they are.
+stale="" usage_colour="" last_usage=""
+if [ "$stale_after" -gt 0 ] && [ -n "$session_id" ] && [ -n "$api_ms" ] &&
+   { [ -n "$fivehour" ] || [ -n "$weekly" ]; }; then
+    [ -n "$now" ] || now=$(date +%s)
+    age=$(usage_age)
+    if [ "$age" -ge $(( stale_after * 60 )) ]; then
+        stale=$(span "$age") usage_colour=$GREY
+    fi
+fi
 
 segments=()
 for part in $parts; do
@@ -230,10 +270,16 @@ for part in $parts; do
             [ -n "$ctx" ] && segments+=("$(meter ctx "$ctx" "$ctx_on" "$ctx_off" "" "$note")")
             ;;
         five_hour)
-            [ -n "$fivehour" ] && segments+=("$(meter 5h "$fivehour" "$fh_on" "$fh_off" "$fh_reset")")
+            if [ -n "$fivehour" ]; then
+                last_usage=${#segments[@]}
+                segments+=("$(meter 5h "$fivehour" "$fh_on" "$fh_off" "$fh_reset" "" "$usage_colour")")
+            fi
             ;;
         weekly)
-            [ -n "$weekly" ] && segments+=("$(meter week "$weekly" "$wk_on" "$wk_off" "$wk_reset")")
+            if [ -n "$weekly" ]; then
+                last_usage=${#segments[@]}
+                segments+=("$(meter week "$weekly" "$wk_on" "$wk_off" "$wk_reset" "" "$usage_colour")")
+            fi
             ;;
         # ── session time ───────────────────────────────────────
         duration)
@@ -273,6 +319,9 @@ for part in $parts; do
     esac
 done
 
+if [ -n "$stale" ] && [ -n "$last_usage" ]; then
+    segments[$last_usage]+=" ${D}updated ${stale} ago${R}"
+fi
 if [ -n "$config_error" ]; then
     segments+=("${RED}statusline-plugin.json is not valid JSON${R}")
 fi
