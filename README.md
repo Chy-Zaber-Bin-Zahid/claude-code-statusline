@@ -110,12 +110,32 @@ my-app · Opus 5.5 high · ctx 42% · 5h 63% · week 85% · $1.50
 
 The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and `weekly`, plus three that are off by default: `duration` (session time, like `1h13m`), `lines` (lines added and removed, like `+120/-30`) and `cost` (session cost, like `$1.50`).
 
-How `bar_style` changes the meters:
+### Examples
 
-```
-"both"      ctx ████░░░░░░ 42% · 5h ■■■■■■□□□□ 63% · week ●●●●●●●●○○ 85%
-"percent"   ctx 42% · 5h 63% · week 85%
-"bar"       ctx ████░░░░░░ · 5h ■■■■■■□□□□ · week ●●●●●●●●○○
+Each line is labeled with the option that produces it.
+
+**Bar styles, width and colors**
+
+![Bar and percent, percent only, bar only, a 5-cell bar, and no colors](assets/styles.svg)
+
+**Reset times and extra parts**
+
+![Reset times always or only near the limit, and the session time, lines changed and cost turned on](assets/extras.svg)
+
+**Your own shapes**
+
+![The default shapes, plain ASCII, and custom shapes](assets/shapes.svg)
+
+The custom line above uses:
+
+```json
+{
+  "shapes": {
+    "context": ["━", "─"],
+    "five_hour": ["◆", "◇"],
+    "weekly": ["◉", "○"]
+  }
+}
 ```
 
 ## Requirements
