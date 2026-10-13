@@ -106,21 +106,29 @@ my-app · Opus 5.5 high · ctx 42% · 5h 63% · week 85% · $1.50
 | `colors` | `true`, `false` | `true` | Plain text when `false` |
 | `warn_at` | 0 to 101 | `50` | Percent where a bar turns yellow |
 | `danger_at` | 0 to 101 | `80` | Percent where a bar turns red |
+| `context_size` | `true`, `false` | `false` | The context window size after the context meter, like `42% of 1M` |
+| `ascii` | `true`, `false` | `false` | Plain ASCII characters only, for terminals or fonts that can't draw the shapes |
 | `shapes` | `{"weekly": ["#", "-"]}` | blocks, squares, dots | The filled and empty characters for each bar: `context`, `five_hour` or `weekly` |
 
-The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and `weekly`, plus three that are off by default: `duration` (session time, like `1h13m`), `lines` (lines added and removed, like `+120/-30`) and `cost` (session cost, like `$1.50`).
+The parts you can list are `folder`, `git`, `model`, `context`, `five_hour` and `weekly`, plus five that are off by default:
+
+- `duration`: session time, like `1h13m`
+- `lines`: lines added and removed, like `+120/-30`
+- `cost`: session cost, like `$1.50`, once there is some
+- `agent`: the agent's name, while you run Claude Code as an agent
+- `worktree`: the worktree's name, while the session is in one
 
 ### Examples
 
 Each line is labeled with the option that produces it.
 
-**Bar styles, width and colors**
+**Bar styles, width, colors and ASCII**
 
-![Bar and percent, percent only, bar only, a 5-cell bar, and no colors](assets/styles.svg)
+![Bar and percent, percent only, bar only, a 5-cell bar, no colors, and plain ASCII](assets/styles.svg)
 
-**Reset times and extra parts**
+**Reset times, context size and extra parts**
 
-![Reset times always or only near the limit, and the session time, lines changed and cost turned on](assets/extras.svg)
+![Reset times always or only near the limit, the context window size, and the session time, lines changed, cost, agent and worktree turned on](assets/extras.svg)
 
 **Your own shapes**
 
@@ -160,9 +168,11 @@ Then run `/statusline:setup` again so it copies the new version.
 2. Run `claude plugin uninstall statusline@statusline`.
 3. Delete `~/.claude/statusline-plugin.sh`, and `~/.claude/statusline-plugin.json` if you made one.
 
-## Privacy
+## Speed and privacy
 
-The script runs on your computer. It reads only the session data Claude Code passes to it and the git status of your current folder, and it makes no network requests.
+The status line refreshes often, so the script remembers the git check for 5 seconds. With that, each refresh takes about 50 ms.
+
+The script runs on your computer and makes no network requests. It reads only the session data Claude Code passes to it and the git status of your current folder. The only thing it writes is that git answer, in one small file per session in your temp folder.
 
 ## License
 

@@ -24,9 +24,13 @@ config=${STATUSLINE_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/statusline-plugi
 program='
 def pct: if type == "number" then (. + 0.5 | floor | tostring) else "" end;
 def int: if type == "number" then (floor | tostring) else "" end;
-def money: if type == "number" then ((. * 100 + 0.5) | floor) as $cents
+def money: if type == "number" and . >= 0.005 then ((. * 100 + 0.5) | floor) as $cents
     | "\($cents / 100 | floor).\($cents % 100 | if . < 10 then "0\(.)" else tostring end)"
     else "" end;
+def size: if type == "number" and . > 0 then
+    if . >= 1000000 then "\(. / 100000 | floor / 10)M" else "\(. / 1000 | floor)k" end
+    else "" end;
+def text: if type == "string" then gsub("[\n\r]"; " ") else "" end;
 def num($d; $lo; $hi): if type == "number" and . >= $lo and . <= $hi then floor else $d end;
 def oneof($d; $xs): . as $v | if any($xs[]; . == $v) then $v else $d end;
 def flag($d): if type == "boolean" then . else $d end;
@@ -35,10 +39,12 @@ def shape($d): if type == "array" and length == 2 and all(.[]; type == "string" 
 
 ($cfg[0] | if type == "object" then . else {} end) as $o
 | ($o.shapes | if type == "object" then . else {} end) as $s
-| ["folder", "git", "model", "context", "five_hour", "weekly", "duration", "lines", "cost"] as $known
-| (.workspace.current_dir // .cwd // ""),
-  (.model.display_name // "Claude"),
-  (.effort.level // ""),
+| ($o.ascii | flag(false)) as $ascii
+| ["folder", "git", "model", "context", "five_hour", "weekly",
+   "duration", "lines", "cost", "agent", "worktree"] as $known
+| (.workspace.current_dir // .cwd // "" | text),
+  (.model.display_name // "Claude" | text),
+  (.effort.level | text),
   (.context_window.used_percentage | pct),
   (.rate_limits.five_hour.used_percentage | pct),
   (.rate_limits.seven_day.used_percentage | pct),
@@ -48,6 +54,10 @@ def shape($d): if type == "array" and length == 2 and all(.[]; type == "string" 
   (.cost.total_lines_added | int),
   (.cost.total_lines_removed | int),
   (.cost.total_cost_usd | money),
+  (.session_id | text),
+  (.context_window.context_window_size | size),
+  (.agent.name | text),
+  (.worktree.name | text),
   (if ($o.parts | type) == "array"
      then [$o.parts[] | select(type == "string") | select(. as $p | any($known[]; . == $p))]
      else ["folder", "git", "model", "context", "five_hour", "weekly"] end | join(" ")),
@@ -59,9 +69,11 @@ def shape($d): if type == "array" and length == 2 and all(.[]; type == "string" 
   ($o.colors | flag(true) | tostring),
   ($o.warn_at | num(50; 0; 101) | tostring),
   ($o.danger_at | num(80; 0; 101) | tostring),
-  ($s.context | shape(["█", "░"]) | .[]),
-  ($s.five_hour | shape(["■", "□"]) | .[]),
-  ($s.weekly | shape(["●", "○"]) | .[])
+  ($o.context_size | flag(false) | tostring),
+  ($ascii | tostring),
+  ($s.context | shape(if $ascii then ["#", "-"] else ["█", "░"] end) | .[]),
+  ($s.five_hour | shape(if $ascii then ["=", "-"] else ["■", "□"] end) | .[]),
+  ($s.weekly | shape(if $ascii then ["*", "."] else ["●", "○"] end) | .[])
 '
 read_fields() { printf '%s' "$input" | jq -r "$@" "$program" 2>/dev/null; }
 
@@ -76,24 +88,29 @@ if [ -z "$fields" ]; then
 fi
 
 {
-    IFS= read -r cwd;       IFS= read -r model;     IFS= read -r effort
-    IFS= read -r ctx;       IFS= read -r fivehour;  IFS= read -r weekly
-    IFS= read -r fh_reset;  IFS= read -r wk_reset;  IFS= read -r dur_ms
-    IFS= read -r added;     IFS= read -r removed;   IFS= read -r cost
-    IFS= read -r parts;     IFS= read -r bar_style; IFS= read -r bar_width
-    IFS= read -r show_effort; IFS= read -r labels;  IFS= read -r reset_time
-    IFS= read -r colors;    IFS= read -r warn_at;   IFS= read -r danger_at
-    IFS= read -r ctx_on;    IFS= read -r ctx_off
-    IFS= read -r fh_on;     IFS= read -r fh_off
-    IFS= read -r wk_on;     IFS= read -r wk_off
+    IFS= read -r cwd;        IFS= read -r model;      IFS= read -r effort
+    IFS= read -r ctx;        IFS= read -r fivehour;   IFS= read -r weekly
+    IFS= read -r fh_reset;   IFS= read -r wk_reset;   IFS= read -r dur_ms
+    IFS= read -r added;      IFS= read -r removed;    IFS= read -r cost
+    IFS= read -r session_id; IFS= read -r ctx_size;   IFS= read -r agent
+    IFS= read -r worktree
+    IFS= read -r parts;      IFS= read -r bar_style;  IFS= read -r bar_width
+    IFS= read -r show_effort; IFS= read -r labels;    IFS= read -r reset_time
+    IFS= read -r colors;     IFS= read -r warn_at;    IFS= read -r danger_at
+    IFS= read -r context_size; IFS= read -r ascii
+    IFS= read -r ctx_on;     IFS= read -r ctx_off
+    IFS= read -r fh_on;      IFS= read -r fh_off
+    IFS= read -r wk_on;      IFS= read -r wk_off
 } <<< "$fields"
 
 # jq couldn't read the session data at all: show the model name alone.
 if [ -z "$fields" ]; then
     parts=model bar_style=both bar_width=10 show_effort=true labels=true
-    reset_time=off colors=true warn_at=50 danger_at=80
+    reset_time=off colors=true warn_at=50 danger_at=80 context_size=false ascii=false
 fi
 model=${model:-Claude}
+# The session id names the git cache file, so keep it to safe characters.
+case $session_id in *[!A-Za-z0-9_-]*) session_id="" ;; esac
 
 if [ "$colors" = false ]; then
     R="" D="" BLUE="" PURPLE="" GREEN="" YELLOW="" RED="" GREY=""
@@ -101,6 +118,11 @@ else
     R=$'\033[0m'; D=$'\033[2m'
     BLUE=$'\033[38;5;110m'; PURPLE=$'\033[38;5;140m'; GREEN=$'\033[38;5;108m'
     YELLOW=$'\033[38;5;179m'; RED=$'\033[38;5;167m'; GREY=$'\033[38;5;245m'
+fi
+if [ "$ascii" = true ]; then
+    SEP=" | " BRANCH="git:" RESET="reset "
+else
+    SEP=" · " BRANCH="⎇ " RESET="↻"
 fi
 [ "$reset_time" != off ] && now=$(date +%s)
 
@@ -115,11 +137,41 @@ until_reset() {
     fi
 }
 
-# A usage meter: label, bar and/or percent, then the reset time if it's wanted.
-# Coloured green, yellow from warn_at, red from danger_at.
-# usage: meter <label> <whole percent> <fill glyph> <empty glyph> [reset epoch]
+# Branch and count of uncommitted changes, as two lines; nothing outside a repo.
+# git status can be slow in big repos and the status line runs often, so the
+# answer is kept for 5 seconds per session and folder.
+git_info() {
+    local cache="" stamp c b d tmp
+    if [ -n "$session_id" ]; then
+        cache="${TMPDIR:-/tmp}/statusline-plugin-git-$session_id"
+        [ -n "$now" ] || now=$(date +%s)
+        if [ -f "$cache" ] &&
+           { IFS= read -r stamp && IFS= read -r c && IFS= read -r b && IFS= read -r d; } < "$cache"; then
+            case $stamp in ''|*[!0-9]*) stamp=0 ;; esac
+            if [ "$c" = "$cwd" ] && [ $(( now - stamp )) -ge 0 ] && [ $(( now - stamp )) -lt 5 ]; then
+                [ "$d" = "-" ] || printf '%s\n%s\n' "$b" "$d"
+                return 0
+            fi
+        fi
+    fi
+    if git -C "$cwd" rev-parse --git-dir >/dev/null 2>&1; then
+        b=$(git -C "$cwd" symbolic-ref --short -q HEAD 2>/dev/null ||
+            git -C "$cwd" rev-parse --short HEAD 2>/dev/null)
+        d=$(git --no-optional-locks -C "$cwd" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    else
+        b="" d="-"
+    fi
+    if [ -n "$cache" ] && tmp=$(mktemp "$cache.XXXXXX" 2>/dev/null); then
+        printf '%s\n%s\n%s\n%s\n' "$now" "$cwd" "$b" "$d" > "$tmp" && mv -f "$tmp" "$cache"
+    fi
+    [ "$d" = "-" ] || printf '%s\n%s\n' "$b" "$d"
+}
+
+# A usage meter: label, bar and/or percent, an optional note, then the reset
+# time if it's wanted. Coloured green, yellow from warn_at, red from danger_at.
+# usage: meter <label> <whole percent> <fill glyph> <empty glyph> [reset epoch] [note]
 meter() {
-    local label=$1 u=$2 on=$3 off=$4 reset=$5 C bar="" out="" filled i left
+    local u=$2 on=$3 off=$4 reset=$5 note=$6 C bar="" out="" filled i left
     if   [ "$u" -ge "$danger_at" ]; then C=$RED
     elif [ "$u" -ge "$warn_at" ];   then C=$YELLOW
     else                                 C=$GREEN
@@ -130,16 +182,17 @@ meter() {
         for ((i = 0; i < filled; i++));         do bar+=$on;  done
         for ((i = filled; i < bar_width; i++)); do bar+=$off; done
     fi
-    [ "$labels" = true ] && out="${D}${label}${R} "
+    [ "$labels" = true ] && out="${D}$1${R} "
     case $bar_style in
         percent) out+="${C}${u}%${R}" ;;
         bar)     out+="${C}${bar}${R}" ;;
         *)       out+="${C}${bar}${R} ${C}${u}%${R}" ;;
     esac
+    [ -n "$note" ] && out+=" ${D}${note}${R}"
     if [ -n "$reset" ] && { [ "$reset_time" = on ] ||
                             { [ "$reset_time" = near-limit ] && [ "$u" -ge "$danger_at" ]; }; }; then
         left=$(until_reset "$reset")
-        [ -n "$left" ] && out+=" ${D}↻${left}${R}"
+        [ -n "$left" ] && out+=" ${D}${RESET}${left}${R}"
     fi
     printf '%s' "$out"
 }
@@ -153,14 +206,12 @@ for part in $parts; do
             ;;
         # ── git branch + count of uncommitted changes ──────────
         git)
-            if [ -n "$cwd" ] && git -C "$cwd" rev-parse --git-dir >/dev/null 2>&1; then
-                branch=$(git -C "$cwd" symbolic-ref --short -q HEAD 2>/dev/null ||
-                         git -C "$cwd" rev-parse --short HEAD 2>/dev/null)
-                dirty=$(git --no-optional-locks -C "$cwd" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-                if [ "$dirty" -gt 0 ]; then
-                    segments+=("${YELLOW}⎇ ${branch}*${R}${D}${dirty}${R}")
-                else
-                    segments+=("${GREEN}⎇ ${branch}${R}")
+            if [ -n "$cwd" ]; then
+                { IFS= read -r branch; IFS= read -r dirty; } <<< "$(git_info)"
+                if [ -n "$dirty" ] && [ "$dirty" -gt 0 ]; then
+                    segments+=("${YELLOW}${BRANCH}${branch}*${R}${D}${dirty}${R}")
+                elif [ -n "$dirty" ]; then
+                    segments+=("${GREEN}${BRANCH}${branch}${R}")
                 fi
             fi
             ;;
@@ -174,7 +225,9 @@ for part in $parts; do
             ;;
         # ── usage meters: context, 5-hour and weekly ───────────
         context)
-            [ -n "$ctx" ] && segments+=("$(meter ctx "$ctx" "$ctx_on" "$ctx_off")")
+            note=""
+            [ "$context_size" = true ] && [ -n "$ctx_size" ] && note="of $ctx_size"
+            [ -n "$ctx" ] && segments+=("$(meter ctx "$ctx" "$ctx_on" "$ctx_off" "" "$note")")
             ;;
         five_hour)
             [ -n "$fivehour" ] && segments+=("$(meter 5h "$fivehour" "$fh_on" "$fh_off" "$fh_reset")")
@@ -200,9 +253,22 @@ for part in $parts; do
                 segments+=("${GREEN}+${added:-0}${R}${D}/${R}${RED}-${removed:-0}${R}")
             fi
             ;;
-        # ── session cost ───────────────────────────────────────
+        # ── session cost, once there is some ───────────────────
         cost)
             [ -n "$cost" ] && segments+=("${GREY}\$${cost}${R}")
+            ;;
+        # ── agent and worktree, only while one is active ───────
+        agent)
+            if [ -n "$agent" ]; then
+                lbl=""; [ "$labels" = true ] && lbl="${D}agent${R} "
+                segments+=("${lbl}${PURPLE}${agent}${R}")
+            fi
+            ;;
+        worktree)
+            if [ -n "$worktree" ]; then
+                lbl=""; [ "$labels" = true ] && lbl="${D}worktree${R} "
+                segments+=("${lbl}${BLUE}${worktree}${R}")
+            fi
             ;;
     esac
 done
@@ -214,7 +280,7 @@ fi
 # ── join with dim separators ───────────────────────────────
 out=""
 for p in "${segments[@]}"; do
-    [ -n "$out" ] && out+="${D} · ${R}"
+    [ -n "$out" ] && out+="${D}${SEP}${R}"
     out+=$p
 done
 printf '%s\n' "$out"
